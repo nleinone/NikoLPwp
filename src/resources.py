@@ -1,10 +1,16 @@
+from flask import Flask
 from flask_restful import Resource, Api
 from models import Movie
 from mason import MasonBuilder
+from flask_restful import Resource, Api
+from flask import Flask
 
 LINK_RELATIONS_URL = "/mwl/link-relations/"
 MASON = "application/vnd.mason+json"
 MOVIE_PROFILE = "/profiles/sensor/"
+
+app = Flask(__name__)
+api = Api(app)
 
 class MovieCollection(Resource):
 
@@ -154,3 +160,9 @@ class MovieBuilder(MasonBuilder):
             title="Edit this movie",
             schema=Movie.get_schema()
         )
+
+api.add_resource(MovieCollection, "/movies/")
+api.add_resource(MovieItem, "/movies/<movie>/")
+        
+        
+        

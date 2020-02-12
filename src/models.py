@@ -7,9 +7,9 @@ from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError, OperationalError
 
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///development.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+#app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 api = Api(api_bp)
