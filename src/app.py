@@ -12,35 +12,40 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 from jsonschema import validate, ValidationError
 
-app = Flask(__name__, static_folder="static")
-api_bp = Blueprint("api", __name__, url_prefix="/api")
-api = Api(api_bp)
+app = Flask(__name__)
+#api_bp = Blueprint("api", __name__, url_prefix="/api")
+#api = Api(api_bp)
+api = Api(app)
 
 MASON = "application/vnd.mason+json"
 LINK_RELATIONS_URL = "/mwl/link-relations/"
 ERROR_PROFILE = "/profiles/error/"
-SENSOR_PROFILE = "/profiles/sensor/"
 
 MEASUREMENT_PAGE_SIZE = 50
 
-app.register_blueprint(api_bp)
+#app.register_blueprint(api_bp)
 
 api.add_resource(MovieCollection, "/movies/")
 api.add_resource(MovieItem, "/movies/<movie>/")
+
+#api.init_app(app)
 
 @app.route("/api/",  methods=["GET"])
 def entry():
     """entry point"""
     try:
         body = MovieBuilder()
-        body.add_namespace("mwl", "/mwl/link-relations/")
+        print("test1")
+        body.add_namespace("mwl", LINK_RELATIONS_URL)
+        print("test2")
         body.add_control_all_movies()
+        print("test3")
         MASON = "application/vnd.mason+json"
         return Response(json.dumps(body), 200, mimetype=MASON)
     
     except Exception as error:
         print(error)
-        return "GET method required", 405
+        return "GET method required: {}".format(error)
 
 @app.route(LINK_RELATIONS_URL)
 def send_link_relations():
