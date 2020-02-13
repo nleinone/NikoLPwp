@@ -8,6 +8,7 @@ SERVER_URL = "http://127.0.0.1:5000"
 def display_movie_collection(s, resp):
     '''Display all movies from the database'''
     
+    print("\n****************************")
     body = resp.json()
     #Get current location, which should be movie collection from entry point
     current_href = body["@controls"]["mwl:movies-all"]["href"]
@@ -21,8 +22,25 @@ def display_movie_collection(s, resp):
     counter = 1
     for movie in movie_items:
         print("\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
-
+        counter += 1
     print("\n{} movie(s) found!".format(len(movie_items)))
+
+def check_item_from_db(resp, s, name, function_index):
+    '''Check if item exists in the database. 1 = add, 2 = delete, 3 = edit'''
+    
+    body = resp.json()
+    current_href = body["@controls"]["mwl:movies-all"]["href"]
+    resp1 = s.get(SERVER_URL + current_href)
+    body2 = resp1.json()
+    
+    movie_items = body2["items"]
+    for movie in movie_items:
+        if movie["name"] == name:
+            print("\nMovie already exists!")
+            if(function_index == 1):
+                add_movie(s,resp)    
+            if(function_index == 2):
+                edit_movie(s,resp)
 
 def submit_data(s, ctrl, data):
     resp = s.request(
@@ -35,20 +53,24 @@ def submit_data(s, ctrl, data):
     return resp
 
 def add_movie(s, resp):
-
+    '''Function for adding movie to the database'''
+    
+    print("\n****************************")
+    display_movie_collection(s, resp)
     movie_to_add = {}
     print("\nType the name of the movie or type 1 to go back.")
     name = input(">")
     if name == "1":
         launch_option_zero(s, resp)
-        
+    
+    check_item_from_db(resp, s, name, 1)
+    
     print("\nType the genre of the movie or type 1 to go back.")
     genre = input(">")
     if genre == "1":
         launch_option_zero(s, resp)
     #print("\nType the release year of the movie.")
     #release_year = input(">")
-    
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
     resp1 = s.get(SERVER_URL + current_href)
@@ -63,7 +85,7 @@ def add_movie(s, resp):
         control = body["@controls"]["mwl:add-movie"]  
     
     movie_to_add["name"] = name
-    movie_to_add["genre"] = name
+    movie_to_add["genre"] = genre
     #movie_to_add["year"] = name
     
     resp3 = submit_data(s, control, movie_to_add)
@@ -71,7 +93,8 @@ def add_movie(s, resp):
     add_movie(s, resp)
     
 def delete_movie(s, resp):
-    
+    '''Function for deleting movie from the database'''
+
     display_movie_collection(s, resp)
     print("\nType the name of the movie you wish to delete or Type '1' to return back")
     name = input(">")
@@ -86,10 +109,11 @@ def delete_movie(s, resp):
     
     try:
         movie_items = body["items"]
+        item_found = False
         for movie in movie_items:
-            #print(str(movie))
-            
+            #print(str(movie))            
             if movie["name"] == name:
+                item_found = True
                 #Move to individual movie with the delete control
                 current_href = movie["@controls"]["self"]["href"]
                 resp2 = s.get(SERVER_URL + current_href)
@@ -109,18 +133,71 @@ def delete_movie(s, resp):
                 
                 print("Movie deleted: {}".format(name))
                 delete_movie(s, resp)
-                
+        if item_found == False:
+            print("\n Invalid Input! Movie with that name not found!")
+            delete_movie(s, resp)
+            
     except KeyError:
         print("\nError in handling your request!")
         launch_option_zero(s, resp)
 
-def edit_movie():
-
+def edit_movie(s, resp):
+    '''Function for editing movies from the database'''
+    
+    print("\n****************************")
     display_movie_collection(s, resp)
-    print("\nType the name of the movie you wish to edit")
+    print("\nType the name of the movie you wish to edit or type 1 to go back.")
     name = input(">")
     
-
+    if name == "1":
+        launch_option_zero(s, resp)
+    
+    #print("\nType the NEW name for the movie")
+    #new_name = input(">")
+    
+    body = resp.json()
+    current_href = body["@controls"]["mwl:movies-all"]["href"]
+    resp1 = s.get(SERVER_URL + current_href)
+    body2 = resp1.json()
+    
+    #Get schema
+    
+    schema_req = body2["@controls"]["mwl:add-movie"]["schema"]["required"]
+    
+    movie_items = body2["items"]
+    item_found = False
+    info_dict = {}
+    for movie in movie_items:
+        if movie["name"] == name:
+            current_href = movie["@controls"]["self"]["href"]
+            resp2 = s.get(SERVER_URL + current_href)
+            body3 = resp2.json()
+            item_found = True
+            genre = movie["genre"]
+    if item_found == False:
+        print("\n Invalid Input! Movie with that name not found!")
+        edit_movie(s, resp)
+    
+    #Edit info:
+    edit_info = {}
+    for req in schema_req:    
+        print("Type the new {} for the {} ({}) or press 1 to go back".format(req, name, genre))
+        variable = input(">")
+        if variable == "1":
+            edit_movie(s, resp)
+        edit_info[req] = variable
+    
+    try:
+        control = body3["@controls"]["edit"]
+    except KeyError:
+        resp3 = s.get(SERVER_URL + body3["@controls"]["self"]["href"])
+        body4 = resp.json()
+        ctrl = body4["@controls"]["edit"]
+    
+    resp3 = submit_data(s, control, edit_info)
+    print("\nMovie edited: {} with new info: {}".format(name, str(edit_info)))
+    edit_movie(s, resp)
+        
 def back_button(from_index, s, resp):
     print("1. Back")
     option = input(">")
