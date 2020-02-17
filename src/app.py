@@ -193,7 +193,7 @@ class MovieItem(Resource):
             return create_error_response(400, "Invalid JSON document", str(e))
     
         db_movie.name = request.json["name"]
-        db_movie.model = request.json["genre"]
+        db_movie.genre = request.json["genre"]
         
         try:
             db.session.commit()

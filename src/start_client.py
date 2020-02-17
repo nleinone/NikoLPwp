@@ -3,12 +3,16 @@ import json
 import requests
 import sys
 
+from colorama import init
+from colorama import Fore, Back, Style
+init(autoreset=True)
+
 SERVER_URL = "http://127.0.0.1:5000"
 
 def display_movie_collection(s, resp):
     '''Display all movies from the database'''
     
-    print("\n****************************")
+    print(Fore.YELLOW + "\n****************************")
     body = resp.json()
     #Get current location, which should be movie collection from entry point
     current_href = body["@controls"]["mwl:movies-all"]["href"]
@@ -21,9 +25,9 @@ def display_movie_collection(s, resp):
     
     counter = 1
     for movie in movie_items:
-        print("\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
         counter += 1
-    print("\n{} movie(s) found!".format(len(movie_items)))
+    print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
 
 def check_item_from_db(resp, s, name, function_index):
     '''Check if item exists in the database. 1 = add, 2 = delete, 3 = edit'''
@@ -36,7 +40,7 @@ def check_item_from_db(resp, s, name, function_index):
     movie_items = body2["items"]
     for movie in movie_items:
         if movie["name"] == name:
-            print("\nMovie already exists!")
+            print(Fore.RED + "\nMovie already exists!")
             if(function_index == 1):
                 add_movie(s,resp)    
             if(function_index == 2):
@@ -55,17 +59,17 @@ def submit_data(s, ctrl, data):
 def add_movie(s, resp):
     '''Function for adding movie to the database'''
     
-    print("\n****************************")
+    print(Fore.YELLOW + "\n****************************")
     display_movie_collection(s, resp)
     movie_to_add = {}
-    print("\nType the name of the movie or type 1 to go back.")
+    print(Fore.YELLOW + "\nType the name of the movie or type 1 to go back.")
     name = input(">")
     if name == "1":
         launch_option_zero(s, resp)
     
     check_item_from_db(resp, s, name, 1)
     
-    print("\nType the genre of the movie or type 1 to go back.")
+    print( Fore.YELLOW + "\nType the genre of the movie or type 1 to go back.")
     genre = input(">")
     if genre == "1":
         launch_option_zero(s, resp)
@@ -89,14 +93,14 @@ def add_movie(s, resp):
     #movie_to_add["year"] = name
     
     resp3 = submit_data(s, control, movie_to_add)
-    print("\nMovie added: {} with genre: {}".format(name, genre))
+    print(Fore.GREEN + "\nMovie added: {} with genre: {}".format(name, genre))
     add_movie(s, resp)
     
 def delete_movie(s, resp):
     '''Function for deleting movie from the database'''
 
     display_movie_collection(s, resp)
-    print("\nType the name of the movie you wish to delete or Type '1' to return back")
+    print(Fore.YELLOW + "\nType the name of the movie you wish to delete or Type '1' to return back")
     name = input(">")
     if name == "1":
         launch_option_zero(s, resp)
@@ -131,22 +135,22 @@ def delete_movie(s, resp):
                 
                 resp4 = submit_data(s, control, movie_to_del)
                 
-                print("Movie deleted: {}".format(name))
+                print(Fore.RED + "Movie deleted: {}".format(name))
                 delete_movie(s, resp)
         if item_found == False:
-            print("\n Invalid Input! Movie with that name not found!")
+            print(Fore.RED + "\n Invalid Input! Movie with that name not found!")
             delete_movie(s, resp)
             
     except KeyError:
-        print("\nError in handling your request!")
+        print(Fore.RED + "\nError in handling your request!")
         launch_option_zero(s, resp)
 
 def edit_movie(s, resp):
     '''Function for editing movies from the database'''
     
-    print("\n****************************")
+    print(Fore.YELLOW + "\n****************************")
     display_movie_collection(s, resp)
-    print("\nType the name of the movie you wish to edit or type 1 to go back.")
+    print(Fore.YELLOW + "\nType the name of the movie you wish to edit or type 1 to go back.")
     name = input(">")
     
     if name == "1":
@@ -181,7 +185,7 @@ def edit_movie(s, resp):
     #Edit info:
     edit_info = {}
     for req in schema_req:    
-        print("Type the new {} for the {} ({}) or press 1 to go back".format(req, name, genre))
+        print(Fore.YELLOW + "Type the new {} for the {} ({}) or press 1 to go back".format(req, name, genre))
         variable = input(">")
         if variable == "1":
             edit_movie(s, resp)
@@ -195,16 +199,16 @@ def edit_movie(s, resp):
         ctrl = body4["@controls"]["edit"]
     
     resp3 = submit_data(s, control, edit_info)
-    print("\nMovie edited: {} with new info: {}".format(name, str(edit_info)))
+    print(Fore.GREEN + "\nMovie edited: {} with new info: {}".format(name, str(edit_info)))
     edit_movie(s, resp)
         
 def back_button(from_index, s, resp):
-    print("1. Back")
+    print(Fore.YELLOW + "1. Back")
     option = input(">")
     if option == "1":
         launch_option_zero(s, resp)
     else:
-        print("Invalid option")
+        print(Fore.RED + "Invalid option")
         if from_index == 1:
             launch_option_show(s, resp)
         if from_index == 2:
@@ -214,8 +218,8 @@ def back_button(from_index, s, resp):
 def launch_option_show(s, resp):
     '''UI function for seeing all wishlisted movies'''
     
-    print("\n****************************")
-    print("\nHere are all currently wishlisted movies.")
+    print(Fore.YELLOW + "\n****************************")
+    print(Fore.YELLOW + "\nHere are all currently wishlisted movies.")
     display_movie_collection(s, resp)
     back_button(1, s, resp)
     
@@ -223,13 +227,13 @@ def launch_option_show(s, resp):
 def launch_option_edit(s, resp):
     '''UI function for movie edit options'''
     
-    print("\n****************************")
-    print("\nAdd/Delete/Edit movies.")
+    print(Fore.YELLOW + "\n****************************")
+    print(Fore.YELLOW + "\nAdd/Delete/Edit movies.")
     
-    print("\n 1. Add a new movie.")
-    print("\n 2. Delete existing movies.")
-    print("\n 3. Edit existing movies.")
-    print("\n 4. Back.")
+    print(Fore.YELLOW + "\n 1. Add a new movie.")
+    print(Fore.YELLOW + "\n 2. Delete existing movies.")
+    print(Fore.YELLOW + "\n 3. Edit existing movies.")
+    print(Fore.YELLOW + "\n 4. Back.")
     
     option = input(">")
     
@@ -243,7 +247,7 @@ def launch_option_edit(s, resp):
         if option == "4":
             launch_option_zero(s, resp)
         else:
-            print("Invalid option")
+            print(Fore.RED + "Invalid option")
             launch_option_edit(s, resp)
 def launch_option_exit():
     '''Function for exit'''
@@ -261,11 +265,11 @@ def launch_option_zero(s, resp):
     user_interface_on = True
     
     '''Print UI'''
-    print("\n****************************")
-    print("\nWelcome to Movie Wishlister!")
-    print("\n 1. See all wishlisted Movies.")
-    print("\n 2. Add/delete/edit movies.")
-    print("\n 3. Exit.")
+    print(Fore.YELLOW + "\n****************************")
+    print(Fore.YELLOW + "\nWelcome to Movie Wishlister!")
+    print(Fore.YELLOW + "\n 1. See all wishlisted Movies.")
+    print(Fore.YELLOW + "\n 2. Add/delete/edit movies.")
+    print(Fore.YELLOW + "\n 3. Exit.")
     
     #switch = "east"
     #room_count = 0
@@ -276,7 +280,7 @@ def launch_option_zero(s, resp):
         try:
             int(option)
             if option != "1" and option != "2" and option != "3":
-                print("\nInvalid option! Choose 1, 2, or 3!")
+                print(Fore.RED + "\nInvalid option! Choose 1, 2, or 3!")
             
             if option == "1":
                 launch_option_show(s, resp)
@@ -286,7 +290,7 @@ def launch_option_zero(s, resp):
                 launch_option_exit()
             
         except ValueError:
-            print("\nInvalid option!")
+            print(Fore.RED + "\nInvalid option!")
         
         #print(current_href)
         #room_count += 1
@@ -306,7 +310,7 @@ def launch_option_zero(s, resp):
                     
 def launch_user_interface():
     
-    print("Connecting to the api...")
+    print(Fore.YELLOW + "Connecting to the api...")
 
 
     #requests.get(SERVER_URL + "/api/artists/")
@@ -317,11 +321,11 @@ def launch_user_interface():
         resp = s.get(SERVER_URL + "/api/")
         if resp.status_code != 200:
             
-            print("\nUnable to access API.")
-            print("Response: " + str(resp))
+            print(Fore.RED + "\nUnable to access API.")
+            print(Fore.RED + "Response: " + str(resp))
             
         else:
-            print("\nConnected to the API!")
+            print(Fore.GREEN + "\nConnected to the API!")
             launch_option_zero(s, resp)
             
 if __name__ == "__main__":
