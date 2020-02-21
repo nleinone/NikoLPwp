@@ -65,7 +65,6 @@ class Uploader(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uploader_name = db.Column(db.String(32), nullable=False)
     email = db.Column(db.String(128), nullable=False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey("movie.id"))
     
     movies = db.relationship('Movie', backref='uploader')
     
@@ -112,11 +111,29 @@ class Movie(db.Model):
         return schema
         
 db.create_all()
+
+def example_uploader():
+    u = Uploader(
+        uploader_name="Niko",
+        email="nikoleino91@gmail.com"
+        
+    )
+    
+    try:
+        db.session.add(u)
+        db.session.commit()
+    except IntegrityError as e:
+        print("Test movie already created. Continuing operation")
+        db.session.rollback()
         
 def example_movie():
+
+    example_uploader = Uploader.query.filter_by(uploader_name='Niko').first()
     m = Movie(
         name="Rambo5",
-        genre="action"
+        genre="action",
+        uploader=example_uploader
+        
     )
     
     try:
@@ -127,6 +144,7 @@ def example_movie():
         db.session.rollback()
         
 #Create sample movie for the user:
+example_uploader()
 example_movie()
 
 '''RESOURCES'''
@@ -143,6 +161,7 @@ class MovieCollection(Resource):
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(MovieCollection))
         body.add_control_add_movie()
+        body.add_control_all_uploaders()
         body["items"] = []
         for db_movie in Movie.query.all():
             item = MovieBuilder(
@@ -165,12 +184,24 @@ class MovieCollection(Resource):
             validate(request.json, Movie.get_schema())
         except ValidationError as e:
             return create_error_response(400, "Invalid JSON document", str(e))
-
+        
+        #Find uploader for the movie:
+        uploader=request.json["uploader"]
+        uploader_object = Uploader.query.filter_by(uploader_name=uploader).first()
+        print(uploader_object)
+        print("\nUploader name: " + str(uploader_object.uploader_name))
+        print("\nUploader email: " + str(uploader_object.email))
+        
         movie = Movie(
             name=request.json["name"],
-            genre=request.json["genre"]
+            genre=request.json["genre"],
+            uploader=uploader_object
         )
-
+        
+       
+        
+        
+        
         try:
             db.session.add(movie)
             db.session.commit()
@@ -197,10 +228,10 @@ class UploaderCollection(Resource):
         body["items"] = []
         for db_uploaders in Uploader.query.all():
             item = MovieBuilder(
-                name=db_uploaders.name,
+                name=db_uploaders.uploader_name,
                 email=db_uploaders.email,
             )
-            item.add_control("self", api.url_for(UploaderItem, uploader=db_uploaders.name))
+            item.add_control("self", api.url_for(UploaderItem, uploader=db_uploaders.uploader_name))
             item.add_control("profile", UPLOADER_PROFILE)
             body["items"].append(item)
 
@@ -218,7 +249,7 @@ class UploaderCollection(Resource):
             return create_error_response(400, "Invalid JSON document", str(e))
 
         uploader = Uploader(
-            name=request.json["name"],
+            uploader_name=request.json["uploader_name"],
             email=request.json["email"],
         )
 
@@ -227,11 +258,11 @@ class UploaderCollection(Resource):
             db.session.commit()
         except IntegrityError:
             return create_error_response(409, "Already exists", 
-                "Uploader with name '{}' already exists.".format(request.json["name"])
+                "Uploader with name '{}' already exists.".format(request.json["uploader_name"])
             )
 
         return Response(status=201, headers={
-            "Location": api.url_for(UploaderItem, name=request.json["name"])
+            "Location": api.url_for(UploaderItem, uploader_name=request.json["uploader_name"])
         })
     
 class MovieItem(Resource):
@@ -418,5 +449,5 @@ class MovieBuilder(MasonBuilder):
 
 api.add_resource(MovieCollection, "/movies/")
 api.add_resource(MovieItem, "/movies/<movie>/")
-#api.add_resource(UploaderCollection, "/movies/uploaders/")
-#api.add_resource(UploaderItem, "/movies/uploaders/<uploader>/")
+api.add_resource(UploaderCollection, "/movies/uploaders/")
+api.add_resource(UploaderItem, "/movies/uploaders/<uploader_name>/")

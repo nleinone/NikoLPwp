@@ -25,7 +25,7 @@ def display_movie_collection(s, resp):
     
     counter = 1
     for movie in movie_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: " + "anon")
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: ")
         counter += 1
     print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
 
@@ -56,7 +56,7 @@ def submit_data(s, ctrl, data):
     print(str(resp))
     return resp
 
-"""
+
 def add_uploader(s, resp):    
     
     print( Fore.YELLOW + "\nType the uploader name or type 1 to go back. Leave empty if you want to proceed anonymously.")
@@ -75,17 +75,12 @@ def add_uploader(s, resp):
         if email == "":
             email = "anon@anon.com"
     
-    
-    
-    resp3 = submit_data(s, control, movie_to_add)
-    print(Fore.GREEN + "\nMovie added: {} with genre: {}".format(name, genre))
-    
     #Submit new uploader to the database:
     body = resp.json()
     movies_all_href = body["@controls"]["mwl:movies-all"]["href"]
     resp4 = s.get(SERVER_URL + movies_all_href)
     body = resp4.json()
-    
+    print("\nbody uploaders: " + str(body))
     uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
     resp5 = s.get(SERVER_URL + uploaders_all_href)
     body = resp5.json()
@@ -101,12 +96,12 @@ def add_uploader(s, resp):
         control = body["@controls"]["mwl:add-uploader"]  
     
     print("\nuploader: " + str(uploader))
-    uploader_to_add["name"] = uploader
+    uploader_to_add["uploader_name"] = uploader
     uploader_to_add["email"] = email
     
     resp6 = submit_data(s, control, uploader_to_add)
     print(Fore.GREEN + "\nUploader added: {} with email: {}".format(uploader, email))
-"""
+    
     
 def add_movie(s, resp):
     '''Function for adding movie to the database'''
@@ -126,6 +121,8 @@ def add_movie(s, resp):
     if genre == "1":
         launch_option_zero(s, resp)
 
+    add_uploader(s, resp)    
+  
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
     resp1 = s.get(SERVER_URL + current_href)
@@ -141,7 +138,9 @@ def add_movie(s, resp):
     
     movie_to_add["name"] = name
     movie_to_add["genre"] = genre
-
+    movie_to_add["uploader"] = "Niko"
+    
+    
     resp3 = submit_data(s, control, movie_to_add)
     print(Fore.GREEN + "\nMovie added: {} with genre: {}. Uploader: {}.".format(name, genre, 1))
     add_movie(s, resp)
