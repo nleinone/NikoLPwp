@@ -223,6 +223,31 @@ def launch_option_show(s, resp):
     display_movie_collection(s, resp)
     back_button(1, s, resp)
     
+
+def launch_option_show_by_genre(s, resp):
+    '''UI function for seeing all wishlisted movies by genre'''
+    
+    print(Fore.YELLOW + "\n****************************")
+    body = resp.json()
+    #Get current location, which should be movie collection from entry point
+    current_href = body["@controls"]["mwl:movies-all"]["href"]
+    #Get response from all movies resource:
+    resp = s.get(SERVER_URL + current_href)
+    body = resp.json()
+    #Get all items currently in the db:
+    movie_items = body["items"]
+    #Print all items:
+    
+    counter = 1
+    for movie in movie_items:
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
+        counter += 1
+    print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
+
+    
+    
+    
+    back_button(1, s, resp)
     
 def launch_option_edit(s, resp):
     '''UI function for movie edit options'''
@@ -257,56 +282,37 @@ def launch_option_exit():
 def launch_option_zero(s, resp):
     '''UI function for lobby'''
 
-    #print(str(resp))
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]
-    #e_resp = s.get(SERVER_URL + current_href)
-    #entry_body = e_resp.json()   
     user_interface_on = True
     
     '''Print UI'''
     print(Fore.YELLOW + "\n****************************")
     print(Fore.YELLOW + "\nWelcome to Movie Wishlister!")
     print(Fore.YELLOW + "\n 1. See all wishlisted Movies.")
-    print(Fore.YELLOW + "\n 2. Add/delete/edit movies.")
-    print(Fore.YELLOW + "\n 3. Exit.")
+    print(Fore.YELLOW + "\n 2. See all wishlisted Movies by Genre.")
+    print(Fore.YELLOW + "\n 3. Add/delete/edit movies.")
+    print(Fore.YELLOW + "\n 4. Exit.")
     
-    #switch = "east"
-    #room_count = 0
-    #visited_rooms = []
     while(user_interface_on):
         
         option = input(">")
         try:
             int(option)
-            if option != "1" and option != "2" and option != "3":
-                print(Fore.RED + "\nInvalid option! Choose 1, 2, or 3!")
+            if option != "1" and option != "2" and option != "3" and option != "4":
+                print(Fore.RED + "\nInvalid option! Choose 1, 2, 3, 4!")
             
             if option == "1":
                 launch_option_show(s, resp)
             elif option == "2":
+                launch_option_show_by_genre(s, resp)
+            elif option == "3":
                 launch_option_edit(s, resp)
             else:
                 launch_option_exit()
             
         except ValueError:
             print(Fore.RED + "\nInvalid option!")
-        
-        #print(current_href)
-        #room_count += 1
-        #Get hrefs of neighbouring rooms:
-        #if switch == "east":
-        #try:
-            #resp = s.get(SERVER_URL + current_href)
-            #body = resp.json()
-            
-            #current_handle = body["handle"]
-            #current_content = body["content"]
-            #current_href = body["@controls"]["maze:east"]["href"]
-            #not_found = check_win(current_content)
-            
-        #except Exception as e:
-        #    print("Error occured: " + str(e))
                     
 def launch_user_interface():
     

@@ -114,6 +114,7 @@ class MovieCollection(Resource):
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(MovieCollection))
         body.add_control_add_movie()
+        
         body["items"] = []
         for db_movie in Movie.query.all():
             item = MovieBuilder(
@@ -154,6 +155,27 @@ class MovieCollection(Resource):
             "Location": api.url_for(MovieItem, movie=request.json["name"])
         })
 
+class MoviesByGenre(Resource):
+
+    def get(self, genre):
+        body = MovieBuilder()
+
+        body.add_namespace("mwl", LINK_RELATIONS_URL)
+        body.add_control("self", api.url_for(MoviesByGenre))
+        body["items"] = []
+        for db_movie in Movie.query.all():
+            if db_movie.genre == genre:
+            
+                item = MovieBuilder(
+                    name=db_movie.name,
+                    genre=db_movie.genre,
+                )
+                item.add_control("self", api.url_for(MovieItem, movie=db_movie.name))
+                item.add_control("profile", MOVIE_PROFILE)
+                body["items"].append(item)
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
+    
 class MovieItem(Resource):
 
     def get(self, movie):
@@ -227,6 +249,14 @@ class MovieBuilder(MasonBuilder):
             title="get all movies"
         )
 
+    def add_control_all_movies_by_genre(self, genre):
+        self.add_control(
+            "mwl:movies-all-genre",
+            api.url_for(MoviesByGenre, genre=genre),
+            method="GET",
+            title="get all movies by genre"
+        )
+        
     def add_control_delete_movie(self, movie):
         self.add_control(
             "mwl:delete",
@@ -257,4 +287,5 @@ class MovieBuilder(MasonBuilder):
 
 api.add_resource(MovieCollection, "/movies/")
 api.add_resource(MovieItem, "/movies/<movie>/")
+api.add_resource(MoviesByGenre, "/moviesbygenre/")
 
