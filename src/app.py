@@ -110,7 +110,6 @@ class MovieCollection(Resource):
 
     def get(self):
         body = MovieBuilder()
-
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(MovieCollection))
         body.add_control_add_movie()
