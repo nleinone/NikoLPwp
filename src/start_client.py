@@ -25,7 +25,7 @@ def display_movie_collection(s, resp):
     
     counter = 1
     for movie in movie_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: " + str(movie["uploader_id"]))
         counter += 1
     print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
 
@@ -56,6 +56,58 @@ def submit_data(s, ctrl, data):
     print(str(resp))
     return resp
 
+"""
+def add_uploader(s, resp):    
+    
+    print( Fore.YELLOW + "\nType the uploader name or type 1 to go back. Leave empty if you want to proceed anonymously.")
+    uploader = input(">")
+    if uploader == "1":
+        launch_option_zero(s, resp)
+
+    if uploader == "":
+        uploader = "John Smith"
+        email = "anon@anon.com"
+    else:
+        print( Fore.YELLOW + "\nType the uploader email or type 1 to go back.")
+        email = input(">")
+        if email == "1":
+            launch_option_zero(s, resp)
+        if email == "":
+            email = "anon@anon.com"
+    
+    
+    
+    resp3 = submit_data(s, control, movie_to_add)
+    print(Fore.GREEN + "\nMovie added: {} with genre: {}".format(name, genre))
+    
+    #Submit new uploader to the database:
+    body = resp.json()
+    movies_all_href = body["@controls"]["mwl:movies-all"]["href"]
+    resp4 = s.get(SERVER_URL + movies_all_href)
+    body = resp4.json()
+    
+    uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
+    resp5 = s.get(SERVER_URL + uploaders_all_href)
+    body = resp5.json()
+    print("\nbody uploaders: " + str(body))
+    
+    uploader_to_add = {}
+    
+    try:
+        control = body["@controls"]["mwl:add-uploader"]
+    except KeyError:
+        resp6 = s.get(SERVER_URL + uploaders_all_href)
+        body4 = resp6.json()
+        control = body["@controls"]["mwl:add-uploader"]  
+    
+    print("\nuploader: " + str(uploader))
+    uploader_to_add["name"] = uploader
+    uploader_to_add["email"] = email
+    
+    resp6 = submit_data(s, control, uploader_to_add)
+    print(Fore.GREEN + "\nUploader added: {} with email: {}".format(uploader, email))
+"""
+    
 def add_movie(s, resp):
     '''Function for adding movie to the database'''
     
@@ -73,8 +125,7 @@ def add_movie(s, resp):
     genre = input(">")
     if genre == "1":
         launch_option_zero(s, resp)
-    #print("\nType the release year of the movie.")
-    #release_year = input(">")
+
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
     resp1 = s.get(SERVER_URL + current_href)
@@ -90,10 +141,10 @@ def add_movie(s, resp):
     
     movie_to_add["name"] = name
     movie_to_add["genre"] = genre
-    #movie_to_add["year"] = name
+    movie_to_add["uploader_id"] = 1
     
     resp3 = submit_data(s, control, movie_to_add)
-    print(Fore.GREEN + "\nMovie added: {} with genre: {}".format(name, genre))
+    print(Fore.GREEN + "\nMovie added: {} with genre: {}. Uploader: {}.".format(name, genre, 1))
     add_movie(s, resp)
     
 def delete_movie(s, resp):
@@ -214,7 +265,6 @@ def back_button(from_index, s, resp):
         if from_index == 2:
             launch_option_edit(s, resp)
 
-    
 def launch_option_show(s, resp):
     '''UI function for seeing all wishlisted movies'''
     
@@ -222,33 +272,48 @@ def launch_option_show(s, resp):
     print(Fore.YELLOW + "\nHere are all currently wishlisted movies.")
     display_movie_collection(s, resp)
     back_button(1, s, resp)
-    
 
-def launch_option_show_by_genre(s, resp):
-    '''UI function for seeing all wishlisted movies by genre'''
+def display_uploaders(s, resp):
+    '''Display all uploaders from the database'''
     
     print(Fore.YELLOW + "\n****************************")
     body = resp.json()
+    
+    #print("\nbody entry: " + str(body))
     #Get current location, which should be movie collection from entry point
-    current_href = body["@controls"]["mwl:movies-all"]["href"]
-    #Get response from all movies resource:
-    resp = s.get(SERVER_URL + current_href)
-    body = resp.json()
+    movies_all_href = body["@controls"]["mwl:movies-all"]["href"]
+    
+    #Get movie collection location
+    resp1 = s.get(SERVER_URL + movies_all_href)
+    body = resp1.json()
+    print("\nbody collection: " + str(body))
+    
+    #Get uploader collection location
+    
+    uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
+    print("\nbody href: " + str(uploaders_all_href))
+    resp2 = s.get(SERVER_URL + uploaders_all_href)
+    body = resp2.json()
+    print("\nbody uploaders: " + str(body))
+    
     #Get all items currently in the db:
-    movie_items = body["items"]
+    uploader_items = body["items"]
     #Print all items:
     
     counter = 1
-    for movie in movie_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")")
+    for uploader in uploader_items:
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(uploader["name"]) + " (" + uploader["email"] + ")")
         counter += 1
-    print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
-
+    print(Fore.GREEN + "\n{} uploader(s) found!".format(len(uploader_items)))
     
+def launch_option_show_uploaders(s, resp):
+    '''UI function for seeing all uploaders'''
     
-    
+    print(Fore.YELLOW + "\n****************************")
+    print(Fore.YELLOW + "\nHere are all uploaders.")
+    display_uploaders(s, resp)
     back_button(1, s, resp)
-    
+
 def launch_option_edit(s, resp):
     '''UI function for movie edit options'''
     
@@ -274,6 +339,7 @@ def launch_option_edit(s, resp):
         else:
             print(Fore.RED + "Invalid option")
             launch_option_edit(s, resp)
+
 def launch_option_exit():
     '''Function for exit'''
     input("Bye bye!")
@@ -290,7 +356,7 @@ def launch_option_zero(s, resp):
     print(Fore.YELLOW + "\n****************************")
     print(Fore.YELLOW + "\nWelcome to Movie Wishlister!")
     print(Fore.YELLOW + "\n 1. See all wishlisted Movies.")
-    print(Fore.YELLOW + "\n 2. See all wishlisted Movies by Genre.")
+    print(Fore.YELLOW + "\n 2. See all uploaders.")
     print(Fore.YELLOW + "\n 3. Add/delete/edit movies.")
     print(Fore.YELLOW + "\n 4. Exit.")
     
@@ -305,7 +371,7 @@ def launch_option_zero(s, resp):
             if option == "1":
                 launch_option_show(s, resp)
             elif option == "2":
-                launch_option_show_by_genre(s, resp)
+                launch_option_show_uploaders(s, resp)
             elif option == "3":
                 launch_option_edit(s, resp)
             else:
