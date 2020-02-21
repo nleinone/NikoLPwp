@@ -214,7 +214,6 @@ def back_button(from_index, s, resp):
         if from_index == 2:
             launch_option_edit(s, resp)
 
-    
 def launch_option_show(s, resp):
     '''UI function for seeing all wishlisted movies'''
     
@@ -222,8 +221,7 @@ def launch_option_show(s, resp):
     print(Fore.YELLOW + "\nHere are all currently wishlisted movies.")
     display_movie_collection(s, resp)
     back_button(1, s, resp)
-    
-    
+      
 def launch_option_edit(s, resp):
     '''UI function for movie edit options'''
     
@@ -249,6 +247,7 @@ def launch_option_edit(s, resp):
         else:
             print(Fore.RED + "Invalid option")
             launch_option_edit(s, resp)
+
 def launch_option_exit():
     '''Function for exit'''
     input("Bye bye!")

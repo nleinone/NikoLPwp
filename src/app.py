@@ -217,6 +217,28 @@ class MovieItem(Resource):
 
         return Response(status=204)
 
+class MoviesByGenre(Resource):
+
+    def get(self, genre):
+        body = MovieBuilder()
+
+        body.add_namespace("mwl", LINK_RELATIONS_URL)
+        body.add_control("self", api.url_for(MoviesByGenre))
+        body["items"] = []
+        for db_movie in Movie.query.all():
+            if db_movie.genre == genre:
+                item = MovieBuilder(
+                    name=db_movie.name,
+                    genre=db_movie.genre,
+                )
+            else:
+                continue
+            item.add_control("self", api.url_for(MovieItem, movie=db_movie.name))
+            item.add_control("profile", MOVIE_PROFILE)
+            body["items"].append(item)
+
+        return Response(json.dumps(body), 200, mimetype=MASON)
+        
 class MovieBuilder(MasonBuilder):
 
     def add_control_all_movies(self):
@@ -257,4 +279,4 @@ class MovieBuilder(MasonBuilder):
 
 api.add_resource(MovieCollection, "/movies/")
 api.add_resource(MovieItem, "/movies/<movie>/")
-
+api.add_resource(MoviesByGenre, "/moviesbygenre/")
