@@ -25,7 +25,7 @@ def display_movie_collection(s, resp):
     
     counter = 1
     for movie in movie_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: " + str(movie["uploader_id"]))
+        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: " + "anon")
         counter += 1
     print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
 
@@ -141,8 +141,7 @@ def add_movie(s, resp):
     
     movie_to_add["name"] = name
     movie_to_add["genre"] = genre
-    movie_to_add["uploader_id"] = 1
-    
+
     resp3 = submit_data(s, control, movie_to_add)
     print(Fore.GREEN + "\nMovie added: {} with genre: {}. Uploader: {}.".format(name, genre, 1))
     add_movie(s, resp)

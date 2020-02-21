@@ -67,7 +67,7 @@ class Uploader(db.Model):
     email = db.Column(db.String(128), nullable=False)
     #movie_id = db.Column(db.Integer, db.ForeignKey("movie.id"))
     
-    movies = db.relationship('Movie', back_populates='uploader')
+    movies = db.relationship('Movie', backref='uploader')
     
     @staticmethod
     def get_schema():
@@ -93,13 +93,11 @@ class Movie(db.Model):
     
     uploader_id = db.Column(db.Integer, db.ForeignKey('uploader.id'))
     
-    uploader = db.relationship("Uploader", back_populates="movies")  
-    
     @staticmethod
     def get_schema():
         schema = {
             "type": "object",
-            "required": ["name", "genre", "uploader_id"]
+            "required": ["name", "genre"]
         }
         props = schema["properties"] = {}
         props["name"] = {
@@ -110,11 +108,7 @@ class Movie(db.Model):
             "description": "Genre of the movie",
             "type": "string"
         }
-        
-        props["uploader_id"] = {
-            "description": "Uploader of the movie",
-            "type": "integer"
-        }
+
         return schema
         
 db.create_all()
@@ -122,8 +116,7 @@ db.create_all()
 def example_movie():
     m = Movie(
         name="Rambo5",
-        genre="action",
-        uploader_id=1
+        genre="action"
     )
     
     try:
@@ -154,8 +147,7 @@ class MovieCollection(Resource):
         for db_movie in Movie.query.all():
             item = MovieBuilder(
                 name=db_movie.name,
-                genre=db_movie.genre,
-                uploader_id=db_movie.uploader_id
+                genre=db_movie.genre
             )
             item.add_control("self", api.url_for(MovieItem, movie=db_movie.name))
             item.add_control("profile", MOVIE_PROFILE)
@@ -176,8 +168,7 @@ class MovieCollection(Resource):
 
         movie = Movie(
             name=request.json["name"],
-            genre=request.json["genre"],
-            uploader_id=request.json["uploader_id"]
+            genre=request.json["genre"]
         )
 
         try:
@@ -254,8 +245,7 @@ class MovieItem(Resource):
         
         body = MovieBuilder(
             name=db_movie.name,
-            genre=db_movie.genre,
-            uploader_id=db_movie.uploader_id
+            genre=db_movie.genre
         )
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(MovieItem, movie=movie))
@@ -284,7 +274,6 @@ class MovieItem(Resource):
     
         db_movie.name = request.json["name"]
         db_movie.genre = request.json["genre"]
-        db_movie.uploader_id = request.json["uploader_id"]
         
         try:
             db.session.commit()
