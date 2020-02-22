@@ -9,6 +9,43 @@ init(autoreset=True)
 
 SERVER_URL = "http://127.0.0.1:5000"
 
+def get_uploader(movie, body, s, counter):
+    '''Navigate to a single uploader with a movie name and get the uploader name'''
+    
+    movie_name = movie["name"]
+    uploader = "John Smith"
+    email = "Anon@Anon.com"
+    
+    uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
+    #print("\nuploaders all href: " + str(uploaders_all_href))
+    resp1 = s.get(SERVER_URL + uploaders_all_href)
+    body = resp1.json()
+    #print("\nuploaders all href: " + str(uploaders_all_href))
+    #print("\nuploaders body: " + str(body))
+    uploader_list = body["items"]
+    #print("\nuploader_list: " + str(uploader_list))
+    for uploader_dict in uploader_list:
+        uploader_name = uploader_dict["uploader_name"]
+        uploader_email = uploader_dict["email"]
+        single_uploader_href = uploader_dict["@controls"]["self"]["href"]
+        #print("\nsingle: " + str(single_uploader_href))
+        resp2 = s.get(SERVER_URL + single_uploader_href)
+        body2 = resp2.json()
+        #print("\nbody2: " + str(body2))
+        
+        uploader_movies = body2["items"]
+        #print("\nuploader_movies: " + str(uploader_movies))
+        
+        for movie_dict in uploader_movies:
+            if movie_dict["name"] == movie_name:
+                uploader = uploader_name
+                email = uploader_email
+            else:
+                continue
+        
+    print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: " + str(uploader) + " (Email: " + email + ")")
+        
+    
 def display_movie_collection(s, resp):
     '''Display all movies from the database'''
     
@@ -19,14 +56,15 @@ def display_movie_collection(s, resp):
     #Get response from all movies resource:
     resp = s.get(SERVER_URL + current_href)
     body = resp.json()
-    print("\nbody: " + str(body))
+    #print("\nbody: " + str(body))
     #Get all items currently in the db:
     movie_items = body["items"]
     #Print all items:
-    print("\nmovie_items: " + str(movie_items))
+    #print("\nmovie_items: " + str(movie_items))
+    
     counter = 1
     for movie in movie_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: ")
+        get_uploader(movie, body, s, counter)
         counter += 1
     print(Fore.GREEN + "\n{} movie(s) found!".format(len(movie_items)))
 
@@ -300,10 +338,15 @@ def display_uploaders(s, resp):
     #Print all items:
     
     counter = 1
+    previous_name = ""
     for uploader in uploader_items:
-        print(Fore.CYAN + "\n" + str(counter) + ": " + str(uploader["name"]) + " (" + uploader["email"] + ")")
-        counter += 1
-    print(Fore.GREEN + "\n{} uploader(s) found!".format(len(uploader_items)))
+        if previous_name == "John Smith":
+            continue
+        else:
+            print(Fore.CYAN + "\n" + str(counter) + ": " + str(uploader["uploader_name"]) + " (" + uploader["email"] + ")")
+            previous_name = uploader["uploader_name"]
+            counter += 1
+    print(Fore.GREEN + "\n{} uploader(s) found!".format(str(counter - 1)))
     
 def launch_option_show_uploaders(s, resp):
     '''UI function for seeing all uploaders'''

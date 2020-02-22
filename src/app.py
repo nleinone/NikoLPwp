@@ -306,6 +306,20 @@ class UploaderItem(Resource):
         body.add_control_delete_uploader(uploader_name)
         body.add_control_modify_uploader(uploader_name)
         
+        body["items"] = []
+        for db_movie in Movie.query.all():
+            
+            uploader_object = db_movie.uploader
+            uploader_object_name = uploader_object.uploader_name
+            
+            if uploader_object_name == uploader_name:
+                item = MovieBuilder(
+                    name=db_movie.name,
+                    genre=db_movie.genre
+                )
+                item.add_control("self", api.url_for(MovieItem, movie=db_movie.name))
+                item.add_control("profile", MOVIE_PROFILE)
+                body["items"].append(item)
         return Response(json.dumps(body), 200, mimetype=MASON)
     
     def put(self, uploader_name):
@@ -384,6 +398,24 @@ class MovieBuilder(MasonBuilder):
             api.url_for(MovieItem, movie=movie),
             method="DELETE",
             title="Delete this movie"
+        )
+        
+    def add_control_delete_uploader(self, uploader_name):
+        self.add_control(
+            "mwl:delete",
+            api.url_for(UploaderItem, uploader_name=uploader_name),
+            method="DELETE",
+            title="Delete this uploader"
+        )
+        
+    def add_control_modify_uploader(self, uploader_name):
+        self.add_control(
+            "edit",
+            api.url_for(UploaderItem, uploader_name=uploader_name),
+            method="PUT",
+            encoding="json",
+            title="Edit this uploader",
+            schema=Uploader.get_schema()
         )
 
     def add_control_add_movie(self):
