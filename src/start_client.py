@@ -19,10 +19,11 @@ def display_movie_collection(s, resp):
     #Get response from all movies resource:
     resp = s.get(SERVER_URL + current_href)
     body = resp.json()
+    print("\nbody: " + str(body))
     #Get all items currently in the db:
     movie_items = body["items"]
     #Print all items:
-    
+    print("\nmovie_items: " + str(movie_items))
     counter = 1
     for movie in movie_items:
         print(Fore.CYAN + "\n" + str(counter) + ": " + str(movie["name"]) + " (" + movie["genre"] + ")" + " Uploader: ")
@@ -56,7 +57,6 @@ def submit_data(s, ctrl, data):
     print(str(resp))
     return resp
 
-
 def add_uploader(s, resp):    
     
     print( Fore.YELLOW + "\nType the uploader name or type 1 to go back. Leave empty if you want to proceed anonymously.")
@@ -82,6 +82,7 @@ def add_uploader(s, resp):
     body = resp4.json()
     print("\nbody uploaders: " + str(body))
     uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
+    print("\nuploaders all href: " + str(uploaders_all_href))
     resp5 = s.get(SERVER_URL + uploaders_all_href)
     body = resp5.json()
     print("\nbody uploaders: " + str(body))
@@ -101,7 +102,7 @@ def add_uploader(s, resp):
     
     resp6 = submit_data(s, control, uploader_to_add)
     print(Fore.GREEN + "\nUploader added: {} with email: {}".format(uploader, email))
-    
+    return uploader, email
     
 def add_movie(s, resp):
     '''Function for adding movie to the database'''
@@ -121,7 +122,7 @@ def add_movie(s, resp):
     if genre == "1":
         launch_option_zero(s, resp)
 
-    add_uploader(s, resp)    
+    uploader_name, email = add_uploader(s, resp)    
   
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
@@ -138,11 +139,11 @@ def add_movie(s, resp):
     
     movie_to_add["name"] = name
     movie_to_add["genre"] = genre
-    movie_to_add["uploader"] = "Niko"
-    
+    movie_to_add["uploader"] = uploader_name
+    movie_to_add["email"] = email
     
     resp3 = submit_data(s, control, movie_to_add)
-    print(Fore.GREEN + "\nMovie added: {} with genre: {}. Uploader: {}.".format(name, genre, 1))
+    print(Fore.GREEN + "\nMovie added: {} with genre: {}. Uploader: {} ({}).".format(name, genre, uploader_name, email))
     add_movie(s, resp)
     
 def delete_movie(s, resp):

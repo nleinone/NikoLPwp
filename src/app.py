@@ -112,41 +112,6 @@ class Movie(db.Model):
         
 db.create_all()
 
-def example_uploader():
-    u = Uploader(
-        uploader_name="Niko",
-        email="nikoleino91@gmail.com"
-        
-    )
-    
-    try:
-        db.session.add(u)
-        db.session.commit()
-    except IntegrityError as e:
-        print("Test movie already created. Continuing operation")
-        db.session.rollback()
-        
-def example_movie():
-
-    example_uploader = Uploader.query.filter_by(uploader_name='Niko').first()
-    m = Movie(
-        name="Rambo5",
-        genre="action",
-        uploader=example_uploader
-        
-    )
-    
-    try:
-        db.session.add(m)
-        db.session.commit()
-    except IntegrityError as e:
-        print("Test movie already created. Continuing operation")
-        db.session.rollback()
-        
-#Create sample movie for the user:
-example_uploader()
-example_movie()
-
 '''RESOURCES'''
 
 LINK_RELATIONS_URL = "/mwl/link-relations/"
@@ -187,21 +152,15 @@ class MovieCollection(Resource):
         
         #Find uploader for the movie:
         uploader=request.json["uploader"]
+        email=request.json["email"]
         uploader_object = Uploader.query.filter_by(uploader_name=uploader).first()
-        print(uploader_object)
-        print("\nUploader name: " + str(uploader_object.uploader_name))
-        print("\nUploader email: " + str(uploader_object.email))
         
         movie = Movie(
             name=request.json["name"],
             genre=request.json["genre"],
             uploader=uploader_object
         )
-        
-       
-        
-        
-        
+
         try:
             db.session.add(movie)
             db.session.commit()
@@ -228,10 +187,10 @@ class UploaderCollection(Resource):
         body["items"] = []
         for db_uploaders in Uploader.query.all():
             item = MovieBuilder(
-                name=db_uploaders.uploader_name,
+                uploader_name=db_uploaders.uploader_name,
                 email=db_uploaders.email,
             )
-            item.add_control("self", api.url_for(UploaderItem, uploader=db_uploaders.uploader_name))
+            item.add_control("self", api.url_for(UploaderItem, uploader_name=db_uploaders.uploader_name))
             item.add_control("profile", UPLOADER_PROFILE)
             body["items"].append(item)
 
