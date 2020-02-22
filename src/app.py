@@ -120,6 +120,7 @@ MOVIE_PROFILE = "/profiles/movie/"
 UPLOADER_PROFILE = "/profiles/uploader/"
 
 class MovieCollection(Resource):
+'''Collection of all the movies in the database'''
 
     def get(self):
         body = MovieBuilder()
@@ -402,7 +403,7 @@ class MovieBuilder(MasonBuilder):
         
     def add_control_delete_uploader(self, uploader_name):
         self.add_control(
-            "mwl:delete",
+            "mwl:delete-uploader",
             api.url_for(UploaderItem, uploader_name=uploader_name),
             method="DELETE",
             title="Delete this uploader"
@@ -410,7 +411,7 @@ class MovieBuilder(MasonBuilder):
         
     def add_control_modify_uploader(self, uploader_name):
         self.add_control(
-            "edit",
+            "edit-uploader",
             api.url_for(UploaderItem, uploader_name=uploader_name),
             method="PUT",
             encoding="json",
