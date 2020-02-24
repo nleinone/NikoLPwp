@@ -131,7 +131,7 @@ MOVIE_PROFILE = "/profiles/movie/"
 UPLOADER_PROFILE = "/profiles/uploader/"
 
 class MovieCollection(Resource):
-'''Collection of all the movies in the database'''
+    '''Collection of all the movies in the database'''
 
     def get(self):
         """Method for GET all movies with appriopriate controls"""
