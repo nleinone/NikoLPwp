@@ -1,0 +1,9 @@
+Python 3.7.2 or newer
+
+Sqlalchemy: https://docs.sqlalchemy.org/en/13/intro.html#installation
+
+flask_restful library: https://flask-restful.readthedocs.io/en/latest/installation.html
+
+flask library: https://flask.palletsprojects.com/en/1.1.x/installation/
+
+json library: command line :> pip install json
