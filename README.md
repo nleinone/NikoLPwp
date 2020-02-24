@@ -28,4 +28,17 @@ This launches the client app, which communicates with the server app (observable
 
 Launching the server app also initializes the database tables, and with the client app, data items can be inserted with command line following the User interface options.
 
+TESTING:
+DEPENDENCIES:
+pytest: pip install pytest
+pytest coverage: pip install pytest.cov
+
+HOW TO OPERATE:
+
+1. Open command line terminal.
+2. Go to the folder where the files are installed with the terminal (./src/).
+3. Type the following line to the terminal: pytest
+
+This will run a series of unit tests, testing the functionalities of database insertions and client and server application methods.
+
 
