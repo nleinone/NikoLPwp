@@ -39,6 +39,6 @@ HOW TO OPERATE:
 2. Go to the folder where the files are installed with the terminal (./src/).
 3. Type the following line to the terminal: pytest
 
-This will run a series of unit tests, testing the functionalities of database insertions and client and server application methods.
-
+This will run a series of unit tests, testing the functionalities of database insertions and server application methods/resources.
+Two separate scripts are ran: test_start_db (db unit tests) and test_start_resources (resource and API tests). These tests were created with the help of lecture materials, customized to the project's needs.
 
