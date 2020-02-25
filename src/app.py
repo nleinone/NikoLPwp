@@ -1,15 +1,4 @@
-from sqlalchemy.engine import Engine
-from sqlalchemy import event
-from sqlalchemy.exc import IntegrityError, OperationalError
-
-import utils
-
-
-from flask_restful import Resource, Api
-from flask import Flask, Blueprint, Response, request
-from flask_sqlalchemy import SQLAlchemy
-
-from jsonschema import validate, ValidationError
+from flask import Flask, Response
 import json
 
 """
@@ -22,18 +11,11 @@ LINK_RELATIONS_URL = "/mwl/link-relations/"
 ERROR_PROFILE = "/profiles/error/"
 
 app = Flask(__name__)
+import utils
 from models import Movie, Uploader, db
 from mason import MasonBuilder
 import resources
 from resources import MovieBuilder
-
-def create_error_response(status_code, title, message=None):
-    """Method for creating Mason error response"""
-    resource_url = request.path
-    body = MasonBuilder(resource_url=resource_url)
-    body.add_error(title, message)
-    body.add_control("profile", href=ERROR_PROFILE)
-    return Response(json.dumps(body), status_code, mimetype=MASON)
 
 @app.route("/api/",  methods=["GET"])
 def entry():
