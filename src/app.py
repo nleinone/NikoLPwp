@@ -2,7 +2,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError, OperationalError
 
-#from models import Movie
+
 #from resources import MovieCollection, MovieItem, MovieBuilder
 import utils
 from mason import MasonBuilder
@@ -26,9 +26,9 @@ ERROR_PROFILE = "/profiles/error/"
 MEASUREMENT_PAGE_SIZE = 50
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///development.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
+
+from models import Movie, Uploader, db
+
 api = Api(app)
 
 def create_error_response(status_code, title, message=None):
@@ -67,61 +67,6 @@ def send_profile(profile):
 def admin_site():
     """Template function for admin.html responses"""
     return app.send_static_file("html/admin.html")
-
-'''MODELS'''  
-
-class Uploader(db.Model):
-    """Database model for movie uploader"""
-    id = db.Column(db.Integer, primary_key=True)
-    uploader_name = db.Column(db.String(32), nullable=False)
-    email = db.Column(db.String(128), nullable=False)
-    
-    movies = db.relationship('Movie', backref='uploader')
-    
-    @staticmethod
-    def get_schema():
-        schema = {
-            "type": "object",
-            "required": ["uploader_name", "email"]
-        }
-        props = schema["properties"] = {}
-        props["name"] = {
-            "description": "uploaders's unique name",
-            "type": "string"
-        }
-        props["email"] = {
-            "description": "email address of the uploader",
-            "type": "string"
-        }
-        return schema
-
-class Movie(db.Model):
-    """Database model for movie item"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), nullable=False, unique=True)
-    genre = db.Column(db.String(128), nullable=False)
-    
-    uploader_id = db.Column(db.Integer, db.ForeignKey('uploader.id'))
-    
-    @staticmethod
-    def get_schema():
-        schema = {
-            "type": "object",
-            "required": ["name", "genre"]
-        }
-        props = schema["properties"] = {}
-        props["name"] = {
-            "description": "Movie's unique name",
-            "type": "string"
-        }
-        props["genre"] = {
-            "description": "Genre of the movie",
-            "type": "string"
-        }
-
-        return schema
-        
-db.create_all()
 
 '''RESOURCES'''
 
