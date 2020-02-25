@@ -31,7 +31,6 @@ def db_handle():
     os.close(db_fd)
     os.unlink(db_fname)
 
-    
 def get_movie(id_num=1):
     """BoilerPlate seen in the excercise 1 test examples"""
     movie = Movie(
@@ -75,12 +74,3 @@ def test_uploader_name_unique(db_handle):
     db_handle.session.add(up2)    
     with pytest.raises(IntegrityError):
         db_handle.session.commit()
-        
-        
-        
-        
-        
-        
-        
-        
-        

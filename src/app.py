@@ -98,7 +98,7 @@ class Uploader(db.Model):
 class Movie(db.Model):
     """Database model for movie item"""
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), nullable=False)
+    name = db.Column(db.String(32), nullable=False, unique=True)
     genre = db.Column(db.String(128), nullable=False)
     
     uploader_id = db.Column(db.Integer, db.ForeignKey('uploader.id'))
@@ -166,7 +166,7 @@ class MovieCollection(Resource):
         
         #Find uploader for the movie:
         uploader=request.json["uploader"]
-        email=request.json["email"]
+        #email=request.json["email"]
         uploader_object = Uploader.query.filter_by(uploader_name=uploader).first()
         
         movie = Movie(
@@ -325,10 +325,12 @@ class UploaderItem(Resource):
         
         body["items"] = []
         for db_movie in Movie.query.all():
-            
+
             uploader_object = db_movie.uploader
-            uploader_object_name = uploader_object.uploader_name
-            
+            if uploader_object is not None:
+                uploader_object_name = uploader_object.uploader_name
+            else:
+                uploader_object_name = "No name"
             if uploader_object_name == uploader_name:
                 item = MovieBuilder(
                     name=db_movie.name,
@@ -358,7 +360,7 @@ class UploaderItem(Resource):
             return create_error_response(400, "Invalid JSON document", str(e))
     
         db_uploader.uploader_name = request.json["uploader_name"]
-        db_uploader.email = request.json["genre"]
+        db_uploader.email = request.json["email"]
         
         try:
             db.session.commit()
