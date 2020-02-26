@@ -9,6 +9,16 @@ init(autoreset=True)
 
 SERVER_URL = "http://127.0.0.1:5000"
 
+def submit_data(s, ctrl, data):
+    """Data submission function, can be found from the lecture materials"""
+    resp = s.request(
+        ctrl["method"],
+        SERVER_URL + ctrl["href"],
+        data=json.dumps(data),
+        headers = {"Content-type": "application/json"}
+    )
+    return resp
+
 def get_uploader(movie, body, s, counter):
     '''Navigate to a single uploader with a movie name and get the uploader name'''
     
@@ -17,25 +27,28 @@ def get_uploader(movie, body, s, counter):
     email = "Anon@Anon.com"
     
     uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
-    #print("\nuploaders all href: " + str(uploaders_all_href))
     resp1 = s.get(SERVER_URL + uploaders_all_href)
     body = resp1.json()
-    #print("\nuploaders all href: " + str(uploaders_all_href))
-    #print("\nuploaders body: " + str(body))
     uploader_list = body["items"]
-    #print("\nuploader_list: " + str(uploader_list))
     for uploader_dict in uploader_list:
         uploader_name = uploader_dict["uploader_name"]
         uploader_email = uploader_dict["email"]
         single_uploader_href = uploader_dict["@controls"]["self"]["href"]
-        #print("\nsingle: " + str(single_uploader_href))
         resp2 = s.get(SERVER_URL + single_uploader_href)
         body2 = resp2.json()
-        #print("\nbody2: " + str(body2))
-        
         uploader_movies = body2["items"]
-        #print("\nuploader_movies: " + str(uploader_movies))
-        
+        if len(uploader_movies) == 0:
+            try:
+                control = body2["@controls"]["mwl:delete-uploader"]
+            except KeyError:
+                resp3 = s.get(SERVER_URL + single_uploader_href)
+                body = resp3.json()
+                control = body2["@controls"]["mwl:delete-uploader"] 
+            uploader_to_del = {}
+            uploader_to_del["uploader_name"] = uploader_name
+                
+            resp4 = submit_data(s, control, uploader_to_del)
+                
         for movie_dict in uploader_movies:
             if movie_dict["name"] == movie_name:
                 uploader = uploader_name
@@ -56,11 +69,8 @@ def display_movie_collection(s, resp):
     #Get response from all movies resource:
     resp = s.get(SERVER_URL + current_href)
     body = resp.json()
-    #print("\nbody: " + str(body))
     #Get all items currently in the db:
     movie_items = body["items"]
-    #Print all items:
-    #print("\nmovie_items: " + str(movie_items))
     
     counter = 1
     for movie in movie_items:
@@ -85,16 +95,6 @@ def check_item_from_db(resp, s, name, function_index):
             if(function_index == 2):
                 edit_movie(s,resp)
 
-def submit_data(s, ctrl, data):
-    resp = s.request(
-        ctrl["method"],
-        SERVER_URL + ctrl["href"],
-        data=json.dumps(data),
-        headers = {"Content-type": "application/json"}
-    )
-    print(str(resp))
-    return resp
-
 def add_uploader(s, resp):    
     
     print( Fore.YELLOW + "\nType the uploader name or type 1 to go back. Leave empty if you want to proceed anonymously.")
@@ -118,12 +118,9 @@ def add_uploader(s, resp):
     movies_all_href = body["@controls"]["mwl:movies-all"]["href"]
     resp4 = s.get(SERVER_URL + movies_all_href)
     body = resp4.json()
-    print("\nbody uploaders: " + str(body))
     uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
-    print("\nuploaders all href: " + str(uploaders_all_href))
     resp5 = s.get(SERVER_URL + uploaders_all_href)
     body = resp5.json()
-    print("\nbody uploaders: " + str(body))
     
     uploader_to_add = {}
     
@@ -134,7 +131,6 @@ def add_uploader(s, resp):
         body4 = resp6.json()
         control = body["@controls"]["mwl:add-uploader"]  
     
-    print("\nuploader: " + str(uploader))
     uploader_to_add["uploader_name"] = uploader
     uploader_to_add["email"] = email
     
@@ -198,19 +194,16 @@ def delete_movie(s, resp):
     resp1 = s.get(SERVER_URL + current_href)
     body = resp1.json()
     
-    
     try:
         movie_items = body["items"]
         item_found = False
         for movie in movie_items:
-            #print(str(movie))            
             if movie["name"] == name:
                 item_found = True
                 #Move to individual movie with the delete control
                 current_href = movie["@controls"]["self"]["href"]
                 resp2 = s.get(SERVER_URL + current_href)
                 body = resp2.json()
-                #print(body)
                  
                 try:
                     control = body["@controls"]["mwl:delete"]
@@ -243,9 +236,6 @@ def edit_movie(s, resp):
     
     if name == "1":
         launch_option_zero(s, resp)
-    
-    #print("\nType the NEW name for the movie")
-    #new_name = input(">")
     
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
@@ -316,22 +306,18 @@ def display_uploaders(s, resp):
     print(Fore.YELLOW + "\n****************************")
     body = resp.json()
     
-    #print("\nbody entry: " + str(body))
     #Get current location, which should be movie collection from entry point
     movies_all_href = body["@controls"]["mwl:movies-all"]["href"]
     
     #Get movie collection location
     resp1 = s.get(SERVER_URL + movies_all_href)
     body = resp1.json()
-    print("\nbody collection: " + str(body))
     
     #Get uploader collection location
     
     uploaders_all_href = body["@controls"]["mwl:uploaders-all"]["href"]
-    print("\nbody href: " + str(uploaders_all_href))
     resp2 = s.get(SERVER_URL + uploaders_all_href)
     body = resp2.json()
-    print("\nbody uploaders: " + str(body))
     
     #Get all items currently in the db:
     uploader_items = body["items"]
@@ -425,10 +411,6 @@ def launch_option_zero(s, resp):
 def launch_user_interface():
     
     print(Fore.YELLOW + "Connecting to the api...")
-
-
-    #requests.get(SERVER_URL + "/api/artists/")
-    #body = resp.json()
 
     with requests.Session() as s:
         s.headers.update({"Accept": "application/vnd.mason+json"})
