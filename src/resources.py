@@ -78,6 +78,8 @@ class MovieCollection(Resource):
             uploader=uploader_object
         )
 
+        print("posting: " + str(movie.name))
+        
         try:
             db.session.add(movie)
             db.session.commit()
@@ -129,10 +131,23 @@ class UploaderCollection(Resource):
             uploader_name=request.json["uploader_name"],
             email=request.json["email"],
         )
-
+        
+        exists = Uploader.query.filter_by(uploader_name=uploader.uploader_name).first()
+        
+        
+        
+        print("\nposting: " + str(exists))
+        print("\nposting: " + str(uploader.uploader_name))
+        
         try:
             db.session.add(uploader)
-            db.session.commit()
+            
+            if exists == None:
+                db.session.commit()
+            else:
+                print("\nNothing to add, uploader already exists.")
+                db.session.rollback()
+            
         except IntegrityError:
             return create_error_response(409, "Already exists", 
                 "Uploader with name '{}' already exists.".format(request.json["uploader_name"])
