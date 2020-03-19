@@ -77,8 +77,6 @@ class MovieCollection(Resource):
             genre=request.json["genre"],
             uploader=uploader_object
         )
-
-        print("posting: " + str(movie.name))
         
         try:
             db.session.add(movie)

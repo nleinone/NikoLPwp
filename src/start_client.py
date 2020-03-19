@@ -149,6 +149,11 @@ def add_movie(s, resp):
     if name == "1":
         launch_option_zero(s, resp)
     
+    if name == "":
+        print(Fore.RED + "\nName cannot be empty.")
+        add_movie(s, resp)
+    
+    
     check_item_from_db(resp, s, name, 1)
     
     print( Fore.YELLOW + "\nType the genre of the movie or type 1 to go back.")
@@ -236,7 +241,10 @@ def edit_movie(s, resp):
     
     if name == "1":
         launch_option_zero(s, resp)
-    
+        
+    if name == "":
+        print(Fore.RED + "\nName cannot be empty.")
+        edit_movie(s, resp)
     body = resp.json()
     current_href = body["@controls"]["mwl:movies-all"]["href"]
     resp1 = s.get(SERVER_URL + current_href)
@@ -266,6 +274,9 @@ def edit_movie(s, resp):
         print(Fore.YELLOW + "Type the new {} for the {} ({}) or press 1 to go back".format(req, name, genre))
         variable = input(">")
         if variable == "1":
+            edit_movie(s, resp)
+        if variable == "":
+            print(Fore.RED + "\nName cannot be empty.")
             edit_movie(s, resp)
         edit_info[req] = variable
     
