@@ -170,7 +170,7 @@ class MovieItem(Resource):
         )
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(MovieItem, movie=movie))
-        body.add_control("collection", api.url_for(MovieCollection))
+        body.add_control("movies-all", api.url_for(MovieCollection))
         body.add_control_delete_movie(movie)
         body.add_control_modify_movie(movie)
         
@@ -235,7 +235,7 @@ class UploaderItem(Resource):
         )
         body.add_namespace("mwl", LINK_RELATIONS_URL)
         body.add_control("self", api.url_for(UploaderItem, uploader_name=uploader_name))
-        body.add_control("collection", api.url_for(UploaderCollection))
+        body.add_control("uploaders-all", api.url_for(UploaderCollection))
         body.add_control_delete_uploader(uploader_name)
         body.add_control_modify_uploader(uploader_name)
         
