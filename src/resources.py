@@ -34,7 +34,7 @@ MOVIE_PROFILE = "/profiles/movie/"
 UPLOADER_PROFILE = "/profiles/uploader/"
 
 class MovieCollection(Resource):
-    '''Collection of all the movies in the database'''
+    '''Resource for collection of all the movies in the database. Includes methods for movieItem resource, adding a movie, and self reference.'''
 
     def get(self):
         """Method for GET all movies with appriopriate controls"""
@@ -91,7 +91,7 @@ class MovieCollection(Resource):
         })
 
 class UploaderCollection(Resource):
-    """Resource class for accessing all uploaders"""
+    """Resource class for accessing all uploaders. Contains methods for adding an uploader item, and navigation method for self reference."""
 
     def get(self):
         """Method for GET all uploaders from the database"""
@@ -156,7 +156,7 @@ class UploaderCollection(Resource):
         })
     
 class MovieItem(Resource):
-    """Resource class for single movie item"""
+    """Resource class for single movie item. Contains methdos for deleting and editing a movie item, and navigation methods back to movie collection and self reference."""
     def get(self, movie):
         db_movie = Movie.query.filter_by(name=movie).first()
         if db_movie is None:
@@ -220,7 +220,7 @@ class MovieItem(Resource):
         return Response(status=204)
 
 class UploaderItem(Resource):
-    """Resource class for single uploader"""
+    """Resource class for single uploader. Contains methods for editing and deleting uploader item and navigation methods back to uploader collection and self reference."""
     def get(self, uploader_name):
         """Method for getting a single uploader from the database"""
         db_uploader = Uploader.query.filter_by(uploader_name=uploader_name).first()
